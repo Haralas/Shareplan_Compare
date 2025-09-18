@@ -27,9 +27,9 @@ ui <- fluidPage(
     HTML("<b>ℹ️ Notes méthodologiques :</b><br>
        • Plutôt que de prendre un prix de référence, on prend le <b>dernier cours disponible à date</b>.<br>
        • Pour chaque jour, la valeur du cours est définie comme la <b>moyenne de l'ouverture, clôture, max et min</b> du jour.<br>
-       • Les <b>splits</b> sont déjà pris en compte dans les données de base (Yahoo Finance).<br>
+       • Les <b>splits</b> d'actions sont déjà pris en compte dans les données de base (Yahoo Finance).<br>
        • La comparaison historique des payoffs (partie 'Payoff pour plusieurs dates de départ') <b>n’est pas dynamique</b> en fonction des paramètres de l’UI : 
-         elle se base sur les paramètres officiels pour un investissement de <b>100 €</b>.<br>
+         elle se base sur les paramètres officiels du Shareplan pour un investissement de <b>100 €</b>.<br>
        • Le script complet est accessible sur GitHub : 
          <a href='https://github.com/Haralas/Shareplan_Compare' target='_blank'>
          https://github.com/Haralas/Shareplan_Compare</a> (branche master).")
