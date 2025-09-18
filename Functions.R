@@ -16,6 +16,7 @@ simulate_investment_classique <- function(stock_data, dividend_data,
   # achat initial
   initial_price <- as.numeric(first(stock_data_$MeanPrice))
   shares        <- initial_investment / (initial_price*(1-decote))
+  dividend_stock <- 0
   
   # suivi de l’évolution du nombre d’actions
   shares_evolution <- data.frame(Date = index(stock_data_), 
@@ -35,10 +36,14 @@ simulate_investment_classique <- function(stock_data, dividend_data,
       price    <- as.numeric(stock_data_$MeanPrice[i])
       shares   <- shares + (dividend * shares) / price
     }
+    if ((d %in% index(dividend_data_)) & reinvest==FALSE) {
+      dividend       <- as.numeric(dividend_data_[d])
+      dividend_stock <- dividend_stock + dividend * shares
+    }
     
     shares_evolution$Shares[i]     <- shares
     shares_evolution$Value[i]      <- as.numeric(stock_data_$MeanPrice[i])
-    shares_evolution$TotalValue[i] <- shares*as.numeric(stock_data_$MeanPrice[i])
+    shares_evolution$TotalValue[i] <- shares*as.numeric(stock_data_$MeanPrice[i]) + dividend_stock
   }
   
   return(shares_evolution)
