@@ -1,7 +1,7 @@
 
 
 # Simulation avec réinvestissement immédiat des dividendes
-simulate_investment_immediate <- function(stock_data, dividend_data, 
+simulate_investment_classique <- function(stock_data, dividend_data, 
                                           initial_investment, start_date, investment_period,
                                           reinvest = TRUE, decote = 0.2) {
   end_date = ymd(start_date) + years(investment_period)
@@ -149,7 +149,7 @@ if(read_data){
   stock_data    = getSymbols(ticker,    from = start_date, to = end_date, auto.assign = FALSE)
   dividend_data = getDividends(ticker,  from = start_date, to = end_date)
   
-  weekly_dates <- seq.Date(as.Date(start_date), as.Date(ymd(end_date) - years(5)), by = "year")
+  weekly_dates <- seq.Date(as.Date(start_date), as.Date(ymd(end_date) - years(5)), by = "month")
   
   classique_list <- lapply(weekly_dates, function(x) {
     
@@ -173,9 +173,9 @@ if(read_data){
   
   # construire table comparée
   comp_data <- data.frame(StartDate = weekly_dates,
-                          Classique_TotalValue = classique_$TotalValue,
-                          Garantie_TotalValue  = garantie_$TotalValueTotal,
-                          Garantie_Employee    = garantie_$TotalValueEmployee)
+                          Classique_TotalValue     = classique_$TotalValue,
+                          Garantie_TotalValue      = garantie_$TotalValueTotal,
+                          Garantie_EmployeeValue   = garantie_$TotalValueEmployee)
   comp_data$StartDate    <- as.Date(comp_data$StartDate)
   
   fwrite(stock_data,    "./Data/stock_data.csv")
