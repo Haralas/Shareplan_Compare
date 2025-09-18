@@ -29,12 +29,6 @@ simulate_investment_immediate <- function(stock_data, dividend_data,
   for (i in 2:NROW(stock_data_)) {
     d <- index(stock_data_)[i]
     
-    # # appliquer split si présent
-    # if (d %in% index(split_data_)) {
-    #   ratio <- as.numeric(split_data_[d])
-    #   shares <- shares / ratio
-    # }
-    
     # appliquer dividende si présent
     if ((d %in% index(dividend_data_)) & reinvest==TRUE) {
       dividend <- as.numeric(dividend_data_[d])
@@ -155,7 +149,6 @@ if(read_data){
   stock_data    = getSymbols(ticker,    from = start_date, to = end_date, auto.assign = FALSE)
   dividend_data = getDividends(ticker,  from = start_date, to = end_date)
   
-  # séquence hebdomadaire de dates de départ
   weekly_dates <- seq.Date(as.Date(start_date), as.Date(ymd(end_date) - years(5)), by = "year")
   
   classique_list <- lapply(weekly_dates, function(x) {
@@ -165,7 +158,7 @@ if(read_data){
                                          reinvest = TRUE, decote   = decote_classique)
     last(sim)
   })
-  # print(classique_list)
+  
   classique_ <- do.call(rbind, classique_list)
   classique_$StartDate <- weekly_dates
   
@@ -198,7 +191,6 @@ if(read_data){
   dividend_data = xts(dividend_data[,-1], order.by = as.Date(dividend_data[,1]))
   
   comp_data     = fread( "./Data/comp_data.csv")
-  # comp_data     = xts(comp_data[,-1], order.by = as.Date(comp_data[,1]))
 }
 
 

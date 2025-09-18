@@ -21,6 +21,20 @@ source('Functions.R')
 
 ui <- fluidPage(
   titlePanel("Comparaison des Formules Shareplan 2025"),
+  div(
+    style = "background-color:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; 
+           font-size:15px; color:#2C3E50; border:1px solid #ddd;",
+    HTML("<b>ℹ️ Notes méthodologiques :</b><br>
+       • Plutôt que de prendre un prix de référence, on prend le <b>dernier cours disponible à date</b>.<br>
+       • Pour chaque jour, la valeur du cours est définie comme la <b>moyenne de l'ouverture, clôture, max et min</b> du jour.<br>
+       • Les <b>splits</b> sont déjà pris en compte dans les données de base (Yahoo Finance).<br>
+       • La comparaison historique des payoffs (partie 'Payoff pour plusieurs dates de départ') <b>n’est pas dynamique</b> en fonction des paramètres de l’UI : 
+         elle se base sur les paramètres officiels pour un investissement de <b>100 €</b>.<br>
+       • Le script complet est accessible sur GitHub : 
+         <a href='https://github.com/Haralas/Shareplan_Compare' target='_blank'>
+         https://github.com/Haralas/Shareplan_Compare</a> (branche master).")
+  ),
+  
   sidebarLayout(
     sidebarPanel(width = 2,
                  textInput("ticker", "Ticker (dummy input)", value = ticker),
@@ -45,7 +59,7 @@ ui <- fluidPage(
               fluidRow(
                 column(12,
                        wellPanel(
-                         h3("💰 Payoff pour plusieurs dates de départ (investissement initial de 100€)"),
+                         h3("💰 Payoff pour plusieurs dates de départ"),
                          tabPanel("Graph - Payoffs hebdos", highchartOutput("hc_payoffs", height = "600px")),
                          tabPanel("Table - Payoffs", DTOutput("tbl_payoffs"))
                        )
@@ -127,7 +141,6 @@ server <- function(input, output, session) {
 
     shares_changes = rbind(sims$simulation_1[1,c('Date','Shares','TotalValue')], shares_changes)
 
-    # créer les plotLines pour chaque changement
     plot_lines <- lapply(1:nrow(shares_changes), function(i) {
       list(
         value = datetime_to_timestamp(as.POSIXct(shares_changes$Date[i])),
@@ -160,8 +173,6 @@ server <- function(input, output, session) {
                  pointFormat = "Valeur: {point.y:.2f} €")
 
     hc
-
-
   })
 
   
