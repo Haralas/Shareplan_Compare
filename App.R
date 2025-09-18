@@ -8,14 +8,16 @@ library(DT)
 library(data.table)
 
 ticker             = "CS.PA"
-start_date         = "1990-01-01"
-end_date           = "2025-09-01"
+start_date         = "1990-01-01" #pour récupérer la donnée sur yahoo finance,  on zoom a partir de 2005 pour les kpis
+end_date           = "2025-09-01" #pour récupérer la donnée sur yahoo finance , on enleve 5 ans pour avoir des chemins de payoff complets
+filter_start_date  = "2000-09-01"
+filter_end_date    = ymd(end_date) - years(5)
 investment_period  = 5
 initial_investment = 100
 decote_classique   = 0.2
 decote_garantie    = 0.064
 taux_garanti       = 0.03
-  
+
 read_data <<- FALSE
 source('Functions.R')
 
@@ -43,7 +45,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(width = 2,
                  textInput("ticker", "Ticker (dummy input)",                    value = ticker),
-                 dateInput("global_start","Date début graphique",               value = "2020-01-01"        ,min = start_date, max = ymd(end_date) - years(5)),
+                 dateInput("global_start","Date début graphique",               value = "2020-01-01"        ,min = start_date, max = filter_end_date),
                  numericInput("investment_period", "Durée détention (années)",  value = investment_period,  min = 1),
                  numericInput("initial_investment", "Capital initial (€)",      value = initial_investment, min = 1),
                  numericInput("decote_classique", "Décote formule classique",   value = decote_classique,   min = 0, max = 1, step = 0.01),
@@ -70,13 +72,20 @@ ui <- fluidPage(
               fluidRow(
                 column(12,
                        wellPanel(
-                         h3("💰 Comaraison des payoffs pour plusieurs dates"),
+                         h3("💰 Comparaison des payoffs pour plusieurs dates"),
+                         fluidRow(
+                           column(3, dateInput("filter_start", "Date début filtre", value = filter_start_date, min = start_date, max = filter_end_date)),
+                           column(3, dateInput("filter_end", "Date fin filtre",     value = filter_end_date ,  min = start_date, max = filter_end_date))
+                         ),
                          HTML("<b>Graphique 3 - Comparaison Graphique des payoffs historiques :</b><br>
                                • Ces graphiques servent à intuiter le comportement historique des deux formules afin d'aider à faire son choix.<br>
                                • Les résultats sont chargés et <b>ne sont pas dynamiques en les paramètres de l'outil</b>.<br>"),
                          tabPanel("Graph - Payoffs hebdos", highchartOutput("hc_payoffs", height = "600px")),
                          uiOutput("kpis"),
-                         tabPanel("Table - Payoffs", DTOutput("tbl_payoffs"))
+                         tabPanel("Table - Payoffs",
+                                  DTOutput("tbl_payoffs")),
+                         
+                         
                        )
                 )
               )
@@ -87,16 +96,26 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   output$hc_payoffs <- renderHighchart({
-    comp <- comp_data
+    comp <- filtered_comp()
+    
     hc <- highchart() %>%
-      hc_add_series(comp, "line", hcaes(x = StartDate, y = Classique_TotalValue), name = "Formule classique") %>%
+      hc_add_series(comp, "line", hcaes(x = StartDate, y = Classique_TotalValue),     name = "Formule classique") %>%
       hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_EmployeeValue),   name = "Formule garantie (payoff employé)") %>%
-      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_TotalValue), name = "Formule garantie (payoff employé + banque)", dashStyle = "ShortDot") %>%
+      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_TotalValue),      name = "Formule garantie (payoff employé + banque)", dashStyle = "ShortDot") %>%
       hc_title(text = "Payoff final en fonction de la date de départ (pas de temps mensuel)") %>%
       hc_yAxis(title = list(text = "Valeur (€)")) %>%
       hc_xAxis(type = "datetime") %>%
       hc_tooltip(shared = TRUE, pointFormat = "{series.name}: {point.y:.2f} €")
     hc
+  })
+  
+  filtered_comp <- reactive({
+    req(input$filter_start, input$filter_end)
+    comp_data_ = comp_data %>%
+      filter(StartDate >= as.Date(input$filter_start),
+             StartDate <= as.Date(input$filter_end))
+    comp_data_$`Classique_TotalValue/Garantie_EmployeeValue` = comp_data_$Classique_TotalValue/comp_data_$Garantie_EmployeeValue
+    return(comp_data_)
   })
   
   
@@ -190,12 +209,12 @@ server <- function(input, output, session) {
   })
   
   output$kpis <- renderUI({
-    comp_data[, `Classique_TotalValue/Garantie_EmployeeValue` := Classique_TotalValue/Garantie_EmployeeValue]
+    comp = copy(filtered_comp())
     
-    n = nrow(comp_data)
-    m = nrow(comp_data[comp_data$Classique_TotalValue  > comp_data$Garantie_EmployeeValue])
+    n = nrow(comp)
+    m = nrow(comp[comp$Classique_TotalValue  > comp$Garantie_EmployeeValue])
     
-    ratio_1 = (mean(comp_data$`Classique_TotalValue/Garantie_EmployeeValue`)-1)
+    ratio_1 = (mean(comp$`Classique_TotalValue/Garantie_EmployeeValue`)-1)
     ratio_2 = m/n
     if (ratio_1 > 0){
       text_1 = paste0("• En moyenne (non pondérée), la formule classique a un rendement ", round(ratio_1,4)*100, "% supérieur à la formule garantie")
@@ -214,9 +233,30 @@ server <- function(input, output, session) {
   })
   
   output$tbl_payoffs <- renderDT({
-    dat <- comp_data %>% mutate(across(where(is.numeric), ~round(., 2)))
-    datatable(dat, options = list(pageLength = 10))
+    comp = filtered_comp()
+    
+    dat <- filtered_comp() %>% 
+      mutate(across(where(is.numeric), ~round(., 2)))
+    
+    datatable(
+      dat,
+      extensions = c("Buttons"),                # pour export Excel/CSV
+      filter = "top",                           # filtres par colonnes
+      rownames = FALSE,
+      options = list(
+        dom = "Bfrtip",                         # boutons + filtres + pagination
+        buttons = c("copy", "csv", "excel", "print"),
+        pageLength = 15,                        # nb lignes par défaut
+        lengthMenu = c(10, 15, 25, 50, 100),
+        autoWidth = TRUE,
+        scrollX = TRUE,                         # scroll horizontal si besoin
+        class = "display nowrap compact",       # style plus dense
+        columnDefs = list(list(className = 'dt-center', targets = "_all")) # centrer colonnes
+      )
+    )
   })
+  
+  
 }
 
 shinyApp(ui, server)
