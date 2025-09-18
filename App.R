@@ -24,7 +24,7 @@ ui <- fluidPage(
   div(
     style = "background-color:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; 
            font-size:15px; color:#2C3E50; border:1px solid #ddd;",
-    HTML("<b>📌 Conclusion :</b><br>
+    HTML("<b>📌 Conclusions :</b><br>
        • La <b>formule classique</b> est généralement plus intéressante, surtout si l'on anticipe une <b>hausse des cours</b>.<br>
        • La <b>formule garantie</b> offre une <b>protection en cas de crise</b> (voir le payoff pour des dates dont la période d'investissement couvre des crises financières).<br>
        • Historiquement, il est très rare de <b>d'être perdant au bout de 5 ans</b> même avec la formule classique 'sans garantie'.<br><br>"),              
@@ -60,7 +60,7 @@ ui <- fluidPage(
                                (côté employé + côté banque, en noir) car la décote est plus importante au départ. <br>
                                 • La courbe (en vert) correspond à la part du payoff pour le salarié, la courbe (en orange) à la part du payoff de la banque dans le cas de la formule garantie.<br><br>"),
                          tabPanel("Graph - Comparaison", highchartOutput("hc_full", height = "600px")),
-                         HTML("<b>Graphique 2 - Zoom sur la formule Classique :</b><br>
+                         HTML("<b>Graphique 2 - Zoom sur la formule classique :</b><br>
                                 • Ce graphique a vocation à montrer l'impact de bénéficier de la décote et de capitaliser les dividendes.<br><br>"),
                          tabPanel("Graph - Classique", highchartOutput("hc_classique", height = "600px"))
                        )
@@ -72,7 +72,7 @@ ui <- fluidPage(
                          h3("💰 Comaraison des payoffs pour plusieurs dates"),
                          HTML("<b>Graphique 3 - Comparaison Graphique des payoffs historiques :</b><br>
                                • Ces graphiques servent à intuiter le comportement historique des deux formules afin d'aider à faire son choix.<br>
-                               • Les résultats sont chargés et <b>ne sont pas dynamique en les paramètres de l'outil</b>.<br>"),
+                               • Les résultats sont chargés et <b>ne sont pas dynamiques en les paramètres de l'outil</b>.<br>"),
                          tabPanel("Graph - Payoffs hebdos", highchartOutput("hc_payoffs", height = "600px")),
                          uiOutput("kpis"),
                          tabPanel("Table - Payoffs", DTOutput("tbl_payoffs"))
@@ -88,9 +88,9 @@ server <- function(input, output, session) {
   output$hc_payoffs <- renderHighchart({
     comp <- comp_data
     hc <- highchart() %>%
-      hc_add_series(comp, "line", hcaes(x = StartDate, y = Classique_TotalValue), name = "Classique") %>%
-      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_EmployeeValue),   name = "Garantie (employé)") %>%
-      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_TotalValue), name = "Garantie (total)", dashStyle = "ShortDot") %>%
+      hc_add_series(comp, "line", hcaes(x = StartDate, y = Classique_TotalValue), name = "Formule classique") %>%
+      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_EmployeeValue),   name = "Formule garantie (payoff employé)") %>%
+      hc_add_series(comp, "line", hcaes(x = StartDate, y = Garantie_TotalValue), name = "Formule garantie (payoff employé + banque)", dashStyle = "ShortDot") %>%
       hc_title(text = "Payoff final en fonction de la date de départ (pas de temps mensuel)") %>%
       hc_yAxis(title = list(text = "Valeur (€)")) %>%
       hc_xAxis(type = "datetime") %>%
@@ -126,13 +126,13 @@ server <- function(input, output, session) {
     
     hc <- highchart() %>%
       hc_add_series(sims$simulation_1, "line", hcaes(x = Date, y = TotalValue),
-                    name = "Formule Classique - Valeur totale (réinvesti + décote)") %>%
+                    name = "Formule classique - Valeur totale (réinvesti + décote)") %>%
       hc_add_series(sims$simulate_investment_garantie_, "line", hcaes(x = Date, y = TotalValueTotal),
-                    name = "Formule Garantie - Payoff total (salarie + banque)") %>%
+                    name = "Formule garantie - Payoff total (salarie + banque)") %>%
       hc_add_series(sims$simulate_investment_garantie_, "line", hcaes(x = Date, y = TotalValueEmployee),
-                    name = "Formule Garantie - Payoff salarie") %>%
+                    name = "Formule garantie - Payoff salarie") %>%
       hc_add_series(sims$simulate_investment_garantie_, "line", hcaes(x = Date, y = TotalValueTotal - TotalValueEmployee),
-                    name = "Formule Garantie - Payoff banque (decote + dividendes)", dashStyle = "ShortDot") %>%
+                    name = "Formule garantie - Payoff banque (decote + dividendes)", dashStyle = "ShortDot") %>%
       hc_title(text = "Comparaison du payoff entre formule garantie et formule classique") %>%
       hc_yAxis(title = list(text = "Valeur (€)")) %>%
       hc_xAxis(type = "datetime", title = list(text = "Date")) %>%
@@ -172,11 +172,11 @@ server <- function(input, output, session) {
     # graphique Highcharter
     hc <- highchart() %>%
       hc_add_series(sims$simulation_1, "line", hcaes(x = Date, y = TotalValue),
-                    name = "Formule Classique - Valeur totale (réinvesti + décote)") %>%
+                    name = "Formule classique - Valeur totale (réinvesti + décote)") %>%
       hc_add_series(sims$simulation_2, "line", hcaes(x = Date, y = TotalValue),
-                    name = "Formule Classique - Valeur totale (réinvesti + sans décote)") %>%
+                    name = "Formule classique - Valeur totale (réinvesti + sans décote)") %>%
       hc_add_series(sims$simulation_3, "line", hcaes(x = Date, y = TotalValue),
-                    name = "Formule Classique - Valeur totale (non réinvesti + sans décote)", dashStyle = "ShortDot") %>%
+                    name = "Formule classique - Valeur totale (non réinvesti + sans décote)", dashStyle = "ShortDot") %>%
       hc_title(text = "Impacts du réinvestissement des dividendes et de la décote dans la formule classique") %>%
       hc_yAxis(title = list(text = "Valeur (€)")) %>%
       hc_xAxis(type = "datetime", title = list(text = "Date"), plotLines = plot_lines) %>%
@@ -197,15 +197,15 @@ server <- function(input, output, session) {
     ratio_1 = (mean(comp_data$`Classique_TotalValue/Garantie_EmployeeValue`)-1)
     ratio_2 = m/n
     if (ratio_1 > 0){
-      text_1 = paste0("• En moyenne (non pondérée), la formule Classique a un rendement ", round(ratio_1,4)*100, "% supérieur à la formule garantie")
+      text_1 = paste0("• En moyenne (non pondérée), la formule classique a un rendement ", round(ratio_1,4)*100, "% supérieur à la formule garantie")
     } else{
-      text_1 = paste0("• En moyenne (non pondérée), la formule Classique a un rendement ", round(ratio_1,4)*100, "% inférieur à la formule garantie")
+      text_1 = paste0("• En moyenne (non pondérée), la formule classique a un rendement ", round(ratio_1,4)*100, "% inférieur à la formule garantie")
     }
     
     if (ratio_2 > 0.5){
-      text_2 = paste0("• La formule Classique a donné un profit supérieur dans ", round(ratio_2,4)*100 , " % des cas de figure.")
+      text_2 = paste0("• La formule classique a donné un profit supérieur dans ", round(ratio_2,4)*100 , " % des cas de figure.")
     } else{
-      text_2 = paste0("• La formule Garantie a donné un profit supérieur dans ",  round((1-ratio_2),4)*100 , " % des cas de figure.")
+      text_2 = paste0("• La formule garantie a donné un profit supérieur dans ",  round((1-ratio_2),4)*100 , " % des cas de figure.")
     }
     div(
       HTML(paste0(text_1, "<br>", text_2))
