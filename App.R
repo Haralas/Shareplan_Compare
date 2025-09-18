@@ -14,7 +14,8 @@ investment_period  = 5
 initial_investment = 100
 decote_classique   = 0.2
 decote_garantie    = 0.064
-
+taux_garanti       = 0.03
+  
 read_data <<- FALSE
 source('Functions.R')
 
@@ -41,13 +42,13 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(width = 2,
-                 textInput("ticker", "Ticker (dummy input)", value = ticker),
-                 dateInput("global_start","Date début graphique", value = "2020-01-01" ,
-                           min = start_date, max = ymd(end_date) - years(5)),
-                 numericInput("investment_period", "Durée détention (années)", value = investment_period, min = 1),
-                 numericInput("initial_investment", "Capital initial (€)", value = initial_investment, min = 1),
-                 numericInput("decote_classique", "Décote formule classique", value = decote_classique, min = 0, max = 1, step = 0.01),
-                 numericInput("decote_garantie", "Décote formule garantie", value = decote_garantie, min = 0, max = 1, step = 0.001),
+                 textInput("ticker", "Ticker (dummy input)",                    value = ticker),
+                 dateInput("global_start","Date début graphique",               value = "2020-01-01"        ,min = start_date, max = ymd(end_date) - years(5)),
+                 numericInput("investment_period", "Durée détention (années)",  value = investment_period,  min = 1),
+                 numericInput("initial_investment", "Capital initial (€)",      value = initial_investment, min = 1),
+                 numericInput("decote_classique", "Décote formule classique",   value = decote_classique,   min = 0, max = 1, step = 0.01),
+                 numericInput("decote_garantie", "Décote formule garantie",     value = decote_garantie,    min = 0, max = 1, step = 0.001),
+                 numericInput("taux_garanti", "Taux garanti formule garantie",  value = taux_garanti,       min = 0, max = 1, step = 0.001),
                  actionButton("run", "Lancer la comparaison historique"),
     ),
     mainPanel(width = 10,
@@ -116,7 +117,7 @@ server <- function(input, output, session) {
       
       simulate_investment_garantie_ =  simulate_investment_garantie(stock_data, dividend_data,
                                                                     initial_investment = input$initial_investment, input$global_start, input$investment_period, 
-                                                                    reinvest = TRUE, decote = input$decote_garantie)
+                                                                    reinvest = TRUE, decote = input$decote_garantie, taux_garanti = input$taux_garanti)
       
     )
   })

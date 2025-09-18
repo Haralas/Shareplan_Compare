@@ -46,7 +46,7 @@ simulate_investment_classique <- function(stock_data, dividend_data,
 
 simulate_investment_garantie <- function(stock_data, dividend_data, 
                                          initial_investment, start_date, investment_period,
-                                         reinvest = TRUE, decote = 0.064) {
+                                         reinvest = TRUE, decote = 0.064, taux_garanti = 0.03) {
   end_date        = ymd(start_date) + years(investment_period)
   
   stock_data_    <- stock_data[paste0(start_date, "/", end_date)]
@@ -126,7 +126,7 @@ simulate_investment_garantie <- function(stock_data, dividend_data,
   #Payoff par pas de temps
   avg_protected_return <- sapply(1:length(protected_returns), function(x) mean(protected_returns[1:x], na.rm=TRUE))
   
-  payoff <- sapply(2:length(protected_returns), function(x) max(((1+0.03/12)^(x-1))*initial_investment,
+  payoff <- sapply(2:length(protected_returns), function(x) max(((1+taux_garanti/12)^(x-1))*initial_investment,
                                                                 4*avg_protected_return[x]*shares_employee+initial_investment, na.rm=TRUE))
   payoff <- c(initial_investment, payoff)
   details_payoff = data.frame(Date                   = monthly_dates,
